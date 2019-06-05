@@ -15,8 +15,11 @@ class FoveatedVisionSystem:
     def getVision(self, *indices):
         return self.devices[indices[0]].getVision() if len(indices) == 1 else [self.devices[camindx].getVision() for camindx in indices]
 
-    def addTasks(self, visname, *vistask):
+    def addTasks(self, visname, *vistask, ):
         return [[self.devices[camindx].addTask(visname, task) for camindx in self.devices.keys()] for task in vistask]
+
+    def addNetwork(self, prototxt, model):
+        network = cv2.dnn.readNetFromCaffe(prototxt, model)
 
     def readFrame(self, *indices):
         return self.devices[indices[0]].readFrame() if len(indices) == 1 else [self.devices[camindx].readFrame() for camindx in indices]

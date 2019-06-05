@@ -6,7 +6,12 @@ myfvs.addVision("mainfoveal", 1/3, 200, "currimg")
 myfvs.addVision("parafoveal", 2/3, 200, "currimg")
 myfvs.addVision("peripheral", 3/3, 200)
 
-myfvs.addTasks("peripheral", "doggg")
+myfvs.addTasks("peripheral", "currimg")
+net = myfvs.addNetwork(
+    "C:\\Users\\conra\\Documents\\foveated_vision_system\\fvs\\dnn\\MobileNetSSD_deploy.prototxt.txt",
+    "C:\\Users\\conra\\Documents\\foveated_vision_system\\fvs\\dnn\\MobileNetSSD_deploy.caffemodel"
+)
+print(net)
 
 while True:
     if fvs.stopSignal():
