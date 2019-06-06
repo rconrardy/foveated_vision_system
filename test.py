@@ -1,27 +1,41 @@
 import fvs
 
+prototxt = "C:\\Users\\conra\\Documents\\foveated_vision_system\\fvs\\dnn\\MobileNetSSD_deploy.prototxt.txt"
+dnnmodel = "C:\\Users\\conra\\Documents\\foveated_vision_system\\fvs\\dnn\\MobileNetSSD_deploy.caffemodel"
+classes = ["background", "aeroplane", "bicycle", "bird", "boat", "bottle", "bus", "car", "cat", "chair", "cow", "diningtable", "dog", "horse", "motorbike", "person", "pottedplant", "sheep", "sofa", "train", "tvmonitor"]
+confidence = 0.7
+
 myfvs = fvs.FoveatedVisionSystem(0)
 
 myfvs.addVision("mainfoveal", 1/3, 200)
-myfvs.addVision("parafoveal", 2/3, 200)
-myfvs.addVision("peripheral", 3/3, 200)
+myfvs.addVision("parafoveal", 2/3, 400)
+myfvs.addVision("peripheral", 3/3, 600)
 
-print(myfvs.addTasks("peripheral", "gray", "log"))
+myfvs.addTask("linearimage", "linear", "parafoveal", ("curr"))
+myfvs.addTask("detectobjects", "detection", "peripheral", ("curr", prototxt, dnnmodel, classes, confidence))
 
-prototxt = "C:\\Users\\conra\\Documents\\foveated_vision_system\\fvs\\dnn\\MobileNetSSD_deploy.prototxt.txt"
-dnnmodel = "C:\\Users\\conra\\Documents\\foveated_vision_system\\fvs\\dnn\\MobileNetSSD_deploy.caffemodel"
-net = myfvs.addNetwork(prototxt, dnnmodel)
-myfvs.addDetect()
 
-print(net)
+# myfvs.addTask("currgray", "gray", "parafoveal", ("curr"))
+# myfvs.addTask("paradiff", "difference", "parafoveal", ("prev", "curr"))
+#
+# myfvs.addTask("linearimage", "linear", "peripheral", ("curr"))
+# myfvs.addTask("linearimage", "linear", "mainfoveal", ("curr"))
+# myfvs.addTask("prevedge", "edge", "peripheral", ("linearimage"))
+#
+# myfvs.addTask("grayimage1", "gray", "peripheral", ("linearimage"))
+# myfvs.addTask("grayimage2", "gray", "peripheral", ("curr"))
+
 
 while True:
     if fvs.stopSignal():
         break
-    cam0 = myfvs.readFrame(0)
-    vis0 = myfvs.getVision(0)
-    print(vis0["peripheral"].mytasks)
-    fvs.showImage("original", cam0)
-    fvs.showImage("mainfoveal", vis0["mainfoveal"].myframe["curr"])
-    fvs.showImage("parafoveal", vis0["parafoveal"].myframe["curr"])
-    fvs.showImage("peripheral", vis0["peripheral"].myframe["gray"])
+
+    myfvs.updateFrames()
+
+    myfvs.showFrame(0, "parafoveal", "curr")
+    myfvs.showFrame(0, "mainfoveal", "curr")
+    myfvs.showFrame(0, "peripheral", "detectobjects")
+    # myfvs.showFrame(0, "peripheral", "prevedge")
+    # myfvs.showFrame(0, "parafoveal", "paradiff")
+    # myfvs.showFrame(0, "peripheral", "linearimage")
+    # myfvs.showFrame(0, "mainfoveal", "linearimage")
