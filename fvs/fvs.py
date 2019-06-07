@@ -85,7 +85,7 @@ class FoveatedDevice:
         self.frames["curr"] = self.video_capture.read()[1]
         self.frames["prev"] = utils.cropSquare(self.frames["prev"])
         self.frames["curr"] = utils.cropSquare(self.frames["curr"])
-        self.focal_point = [-200, -200]
+        self.focal_point = [0, 0]
         self.visions = {}
 
     def addVision(self, vision_name, ratio, pixels):
@@ -124,7 +124,7 @@ class Vision:
 
     def updateFrames(self, curr, prev):
         """Update all the frames in the Vision given the original curr and previous frames."""
-        self.frames["prev"], self.frames["curr"] = [utils.cropRatio(image, self.ratio, self.focal_point) for image in [prev, curr]]
+        self.frames["prev"], self.frames["curr"] = [utils.cropRatio(image, self.ratio, self.pixels, self.focal_point) for image in [prev, curr]]
         self.frames["prev"], self.frames["curr"] = [utils.resizeImg(self.frames[frame], self.pixels) for frame in ["prev", "curr"]]
         [getattr(self, "get" + val[0].lower().capitalize())(key, val[1]) for key, val in self.tasks.items()]
 
@@ -188,11 +188,13 @@ class Vision:
 
 
     def getCaffe(self, task_name, args):
-        blob = cv2.dnn.blobFromImage(cv2.resize(self.frames[args[0]], args[4]), args[3], args[4], args[5])
+        # blob = cv2.dnn.blobFromImage(cv2.resize(self.frames[args[0]], args[4]), args[3], args[4], args[5])
+        blob = cv2.dnn.blobFromImage(cv2.resize(self.frames[args[0]], (self.pixels, self.pixels)), args[3], (self.pixels, self.pixels), args[5])
         self.networks[task_name][0].setInput(blob)
         detections = self.networks[task_name][0].forward()
         self.frames[task_name] = copy.deepcopy(self.frames[args[0]])
         (h, w) = self.frames[task_name].shape[:2]
+        # print(h, w)
         for i in numpy.arange(0, detections.shape[2]):
             confidence = detections[0, 0, i, 2]
             if confidence > args[7]:
@@ -203,8 +205,7 @@ class Vision:
                 cv2.rectangle(self.frames[task_name], (startx, starty), (endx, endy), self.networks[task_name][2][idx], 2)
                 y = starty - 15 if starty - 15 > 15 else starty + 15
                 cv2.putText(self.frames[task_name], label, (startx, y), cv2.FONT_HERSHEY_SIMPLEX, 0.5, self.networks[task_name][2][idx], 2)
-                if self.networks[task_name][1][idx] == "face":
-                    print(self.pixels)
+                if self.networks[task_name][1][idx] == "face" or self.networks[task_name][1][idx] == "car":
                     self.focal_point[0] = (endx - (endx - startx)//2) - self.pixels//2
                     self.focal_point[1] = -(endy - (endy - starty)//2) + self.pixels//2
-                    print(self.focal_point)
+        print(self.focal_point)
