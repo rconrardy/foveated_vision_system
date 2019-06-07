@@ -30,7 +30,7 @@ confidence = 0.5
 myfvs.addTask("detectfaces", "caffe", "peripheral", ("curr", prototxt, dnnmodel, scale_factor, size, mean, classes, confidence))
 
 """Haar face and eye detection"""
-# myfvs.addTask("haarimage", "haar", "peripheral", ("curr"))
+myfvs.addTask("haarimage", "haar", "peripheral", ("curr"))
 
 """Do other tasks"""
 myfvs.addTask("diffimage", "difference", "parafoveal", ("curr", "prev"))
@@ -55,6 +55,7 @@ while True:
 
     myfvs.showFrame(0, "parafoveal", "diffimage")
     myfvs.showFrame(0, "mainfoveal", "grayimage")
+    myfvs.showFrame(0, "mainfoveal", "loggray")
 
 myfps.stop()
 print(myfps.fps())

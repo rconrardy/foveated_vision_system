@@ -37,7 +37,6 @@ def cropRatio(frame, ratio, pixels, focal_point):
     if crop_end_y >= old_size[1]:
         crop_end_y = old_size[1]
         crop_begin_y = old_size[1] - crop_length_y
-    print(crop_begin_x, crop_end_x)
     return frame[crop_begin_y:crop_end_y, crop_begin_x:crop_end_x]
 
 def resizeImg(frame, pixels):

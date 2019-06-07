@@ -153,25 +153,30 @@ class Vision:
         del self.networks[task_name]
 
     def getGray(self, task_name, args):
-        """Get a gray version of the current image."""
+        """Get a gray version of the given image."""
         self.frames[task_name] = cv2.cvtColor(self.frames[args], cv2.COLOR_BGR2GRAY)
 
     def getEdge(self, task_name, args):
+        """Get the edges of the given image."""
         self.frames[task_name] = cv2.Canny(self.frames[args], 100, 200)
 
     def getDifference(self, task_name, args):
+        """Get the difference of the two given images."""
         abs_diff = cv2.absdiff(self.frames[args[0]], self.frames[args[1]])
         self.frames[task_name] = cv2.threshold(abs_diff, 30, 255, cv2.THRESH_BINARY)[1]
 
     def getLog(self, task_name, args):
+        """Get the log polar of the given image."""
         new_size = (self.frames[args].shape[0]/2, self.frames[args].shape[1]/2)
         self.frames[task_name] = cv2.logPolar(self.frames[args], new_size, 40, cv2.WARP_FILL_OUTLIERS)
 
     def getLinear(self, task_name, args):
+        """Get the linear polar of the given image."""
         new_size = (self.frames[args].shape[0]/2, self.frames[args].shape[1]/2,)
         self.frames[task_name] = cv2.linearPolar(self.frames[args], new_size, 40, cv2.WARP_FILL_OUTLIERS)
 
     def getHaar(self, task_name, args):
+        """Get the face and eyes from a haar cascade classifier."""
         haarcascades = os.path.join(os.path.dirname(__file__), '')
         face_cascade = cv2.CascadeClassifier(haarcascades + "cascade\\haarcascade_frontalface_default.xml")
         eye_cascade = cv2.CascadeClassifier(haarcascades + "cascade\\haarcascade_eye.xml")
@@ -186,15 +191,13 @@ class Vision:
             for (ex, ey, ew, eh) in eyes:
                 cv2.rectangle(roi_color, (ex, ey), (ex+ew, ey+eh), (0, 255, 0), 2)
 
-
     def getCaffe(self, task_name, args):
-        # blob = cv2.dnn.blobFromImage(cv2.resize(self.frames[args[0]], args[4]), args[3], args[4], args[5])
+        """Get detection from a caffe model."""
         blob = cv2.dnn.blobFromImage(cv2.resize(self.frames[args[0]], (self.pixels, self.pixels)), args[3], (self.pixels, self.pixels), args[5])
         self.networks[task_name][0].setInput(blob)
         detections = self.networks[task_name][0].forward()
         self.frames[task_name] = copy.deepcopy(self.frames[args[0]])
         (h, w) = self.frames[task_name].shape[:2]
-        # print(h, w)
         for i in numpy.arange(0, detections.shape[2]):
             confidence = detections[0, 0, i, 2]
             if confidence > args[7]:
@@ -208,4 +211,3 @@ class Vision:
                 if self.networks[task_name][1][idx] == "face" or self.networks[task_name][1][idx] == "car":
                     self.focal_point[0] = (endx - (endx - startx)//2) - self.pixels//2
                     self.focal_point[1] = -(endy - (endy - starty)//2) + self.pixels//2
-        print(self.focal_point)
