@@ -4,6 +4,7 @@ import numpy
 import copy
 import math
 import cv2
+import os
 
 class FoveatedVisionSystem:
     def __init__(self, *camera_indices):
@@ -129,19 +130,22 @@ class Vision:
 
     def addTask(self, task_name, task_type, args):
         """Add a task to the Vision given a task name, task type, and arguments for the function."""
-        if task_type == "detection":
-            self.addNetwork(task_name, args[1], args[2], args[3])
+        if task_type == "caffe":
+            self.addNetwork(task_name, args[1], args[2], args[6])
         self.tasks[task_name] = (task_type, args)
 
     def removeTask(self, task_name):
         """Remove a task from the vision given a task name."""
-        if self.tasks[task_name][0] == "detection":
+        if self.tasks[task_name][0] == "caffe":
             self.removeNetwork(task_name)
         del self.tasks[task_name]
 
     def addNetwork(self, task_name, prototxt, model, classes):
         """Add a network to the Vision given a task name, prototxt, model, and classes."""
         mycolor = numpy.random.uniform(0, 255, size=(len(classes), 3))
+        caffes = os.path.join(os.path.dirname(__file__), '')
+        prototxt = caffes + "\\caffe\\" + prototxt
+        model = caffes + "\\caffe\\" + model
         self.networks[task_name] = (cv2.dnn.readNetFromCaffe(prototxt, model), classes, mycolor)
 
     def removeNetwork(self, task_name):
@@ -167,19 +171,31 @@ class Vision:
         new_size = (self.frames[args].shape[0]/2, self.frames[args].shape[1]/2,)
         self.frames[task_name] = cv2.linearPolar(self.frames[args], new_size, 40, cv2.WARP_FILL_OUTLIERS)
 
-    def getDetection(self, task_name, args):
-        best_confidence = 0
-        best_focal = (0, 0)
-        best_label = ""
-        # print(self.focal_point)
-        blob = cv2.dnn.blobFromImage(cv2.resize(self.frames[args[0]], (300, 300)), 0.007843, (300, 300), 127.5)
+    def getHaar(self, task_name, args):
+        haarcascades = os.path.join(os.path.dirname(__file__), '')
+        face_cascade = cv2.CascadeClassifier(haarcascades + "cascade\\haarcascade_frontalface_default.xml")
+        eye_cascade = cv2.CascadeClassifier(haarcascades + "cascade\\haarcascade_eye.xml")
+        self.frames[task_name] = copy.deepcopy(self.frames[args])
+        gray_image = cv2.cvtColor(self.frames[task_name], cv2.COLOR_BGR2GRAY)
+        faces = face_cascade.detectMultiScale(gray_image, 1.3, 5)
+        for (x, y, w, h) in faces:
+            self.frames[task_name] = cv2.rectangle(self.frames[task_name], (x,y), (x+w, y+h), (255, 0, 0), 2)
+            roi_gray = gray_image[y:y+h, x:x+w]
+            roi_color = self.frames[task_name][y:y+h, x:x+w]
+            eyes = eye_cascade.detectMultiScale(roi_gray)
+            for (ex, ey, ew, eh) in eyes:
+                cv2.rectangle(roi_color, (ex, ey), (ex+ew, ey+eh), (0, 255, 0), 2)
+
+
+    def getCaffe(self, task_name, args):
+        blob = cv2.dnn.blobFromImage(cv2.resize(self.frames[args[0]], args[4]), args[3], args[4], args[5])
         self.networks[task_name][0].setInput(blob)
         detections = self.networks[task_name][0].forward()
         self.frames[task_name] = copy.deepcopy(self.frames[args[0]])
         (h, w) = self.frames[task_name].shape[:2]
         for i in numpy.arange(0, detections.shape[2]):
             confidence = detections[0, 0, i, 2]
-            if confidence > args[4]:
+            if confidence > args[7]:
                 idx = int(detections[0, 0, i, 1])
                 box = detections[0, 0, i, 3:7] * numpy.array([w, h, w, h])
                 (startx, starty, endx, endy) = box.astype("int")
@@ -187,17 +203,8 @@ class Vision:
                 cv2.rectangle(self.frames[task_name], (startx, starty), (endx, endy), self.networks[task_name][2][idx], 2)
                 y = starty - 15 if starty - 15 > 15 else starty + 15
                 cv2.putText(self.frames[task_name], label, (startx, y), cv2.FONT_HERSHEY_SIMPLEX, 0.5, self.networks[task_name][2][idx], 2)
-                if self.networks[task_name][1][idx] == "bottle":
-                    best_focal = (endx - (endx - startx), endy - (endy - starty))
-                    self.focal_point[0] = best_focal[0] - self.pixels//2
-                    self.focal_point[1] = -best_focal[1] + self.pixels//2
+                if self.networks[task_name][1][idx] == "face":
+                    print(self.pixels)
+                    self.focal_point[0] = (endx - (endx - startx)//2) - self.pixels//2
+                    self.focal_point[1] = -(endy - (endy - starty)//2) + self.pixels//2
                     print(self.focal_point)
-                # if label > "bottle":
-                #     best_confidence = confidence
-                #
-                #     best_label = self.networks[task_name][1][idx]
-        # if best_confidence != 0 and best_label == "bottle":
-        #     self.focal_point[0] = best_focal[0]
-        #     self.focal_point[1] = best_focal[1]
-
-        # print(self.focal_point)
