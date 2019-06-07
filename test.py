@@ -7,9 +7,9 @@ confidence = 0.7
 
 myfvs = fvs.FoveatedVisionSystem(0)
 
-myfvs.addVision("mainfoveal", 1/3, 200)
-myfvs.addVision("parafoveal", 2/3, 400)
-myfvs.addVision("peripheral", 3/3, 600)
+myfvs.addVision("mainfoveal", 1/3, 100)
+myfvs.addVision("parafoveal", 2/3, 100)
+myfvs.addVision("peripheral", 3/3, 100)
 
 myfvs.addTask("linearimage", "linear", "parafoveal", ("curr"))
 myfvs.addTask("detectobjects", "detection", "peripheral", ("curr", prototxt, dnnmodel, classes, confidence))
