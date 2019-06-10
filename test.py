@@ -5,9 +5,9 @@ myfvs = fvs.FoveatedVisionSystem(0)
 myfps = fvs.fps()
 
 """Make visions"""
-myfvs.addVision("mainfoveal", 1/3, 128)
-myfvs.addVision("parafoveal", 2/3, 128)
-myfvs.addVision("peripheral", 3/3, 128)
+myfvs.addVision("mainfoveal", 1/3, 400)
+myfvs.addVision("parafoveal", 2/3, 400)
+myfvs.addVision("peripheral", 3/3, 400)
 
 """Caffe for object detection"""
 # prototxt = "MobileNetSSD_deploy.prototxt.txt"
@@ -30,13 +30,10 @@ confidence = 0.5
 myfvs.addTask("detectfaces", "caffe", "peripheral", ("curr", prototxt, dnnmodel, scale_factor, size, mean, classes, confidence))
 
 """Haar face and eye detection"""
-myfvs.addTask("haarimage", "haar", "peripheral", ("curr"))
+# myfvs.addTask("haarimage", "haar", "peripheral", ("curr"))
 
 """Do other tasks"""
 myfvs.addTask("diffimage", "difference", "parafoveal", ("curr", "prev"))
-myfvs.addTask("grayimage", "gray", "mainfoveal", ("curr"))
-myfvs.addTask("logimage", "log", "parafoveal", ("curr"))
-myfvs.addTask("loggray", "log", "mainfoveal", ("grayimage"))
 
 
 myfps.start()
@@ -54,8 +51,7 @@ while True:
     # myfvs.showFrame(0, "peripheral", "haarimage")
 
     myfvs.showFrame(0, "parafoveal", "diffimage")
-    myfvs.showFrame(0, "mainfoveal", "grayimage")
-    myfvs.showFrame(0, "mainfoveal", "loggray")
+    myfvs.showFrame(0, "mainfoveal", "curr")
 
 myfps.stop()
 print(myfps.fps())
