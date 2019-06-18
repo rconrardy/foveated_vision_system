@@ -1,9 +1,10 @@
 import cv2
 
 visions = {
-    "mainfoveal": {"ratio": 1/3, "size": 124, "jobs": []},
-    "parafoveal": {"ratio": 2/3, "size": 124, "jobs": []},
-    "peripheral": {"ratio": 3/3, "size": 124, "jobs": []}
+    "mainfoveal": {"ratio": 1/3, "size": 100, "jobs": []},
+    "parafoveal": {"ratio": 2/3, "size": 100, "jobs": []},
+    "perifoveal": {"ratio": 3/4, "size": 100, "jobs": []},
+    "peripheral": {"ratio": 3/3, "size": 100, "jobs": []}
 }
 
 networks = {
