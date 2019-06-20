@@ -39,5 +39,5 @@ def cropRatio(frame, ratio, pixels, focal_point):
         crop_begin_y = old_size[1] - crop_length_y
     return frame[crop_begin_y:crop_end_y, crop_begin_x:crop_end_x]
 
-def resizeImg(frame, pixels):
+def resizeImgCV2(frame, pixels):
      return cv2.resize(frame, (pixels, pixels))
