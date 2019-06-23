@@ -1,6 +1,6 @@
 import fvs
 
-myfvs = fvs.FoveatedVisionSystem()
+myfvs = fvs.System()
 
 myfvs["Capture Device 0"] = fvs.Device(0)
 myfvs["Capture Device 0"]["peripheral 0"] = fvs.Vision(4/6, 32)
