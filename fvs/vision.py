@@ -5,7 +5,7 @@ class Vision:
     def __init__(self, ratio=None, size=None):
         self._ratio = ratio
         self._size = size
-        self._frames = {"curr": None}
+        self._frames = {"prev": None, "curr": None}
 
     def __repr__(self):
         functions = ', '.join(str(key) for key in self._frames.keys())
@@ -24,6 +24,9 @@ class Vision:
         return iter(self._frames.items())
 
     def update(self, frames, focal_point):
+        self._frames["prev"] = utils.cropRatio(frames["prev"], self._ratio, self._size, focal_point)
+        self._frames["prev"] = cv2.resize(self._frames["prev"], (self._size, self._size))
+
         self._frames["curr"] = utils.cropRatio(frames["curr"], self._ratio, self._size, focal_point)
         self._frames["curr"] = cv2.resize(self._frames["curr"], (self._size, self._size))
 

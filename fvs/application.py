@@ -6,15 +6,15 @@ class Application(tkinter.Tk):
     def __init__(self, fvs, *args, **kwargs):
         """Initialize the Application given FoveatedVisionSystem."""
 
-        # Initialize the application as a tkinter object
+        # Initialize the application as a tkinter object with width and height
         tkinter.Tk.__init__(self, *args, **kwargs)
-        self.configure(bg="lightgray", width=1000, height=800)
+        self.configure(bg="lightgray", width=1200, height=800)
         self.resizable(width=False, height=False)
 
         # FoveatedVisionSystem to display in application
         self.fvs = fvs
 
-        # Store the frames for the application
+        # Store all the information for the GUI
         self.app_frames = {}
         self.app_option = {}
         self.app_choice = {}
@@ -22,6 +22,7 @@ class Application(tkinter.Tk):
         self.app_tracer = {}
         self.app_canvas = {}
         self.pil_frames = {}
+
 
         self.app_string["device"] = tkinter.StringVar(self)
         self.app_choice["device"] = [choice[0] for choice in self.fvs]
@@ -51,16 +52,16 @@ class Application(tkinter.Tk):
 
         # Set up drop down menu to choose device
         self.app_option["device"] = tkinter.OptionMenu(self.app_frames["east"], self.app_string["device"], *self.app_choice["device"])
-        self.app_option["device"].config(width=93, background="lightgray")
+        self.app_option["device"].config(width=125, background="lightgray")
         self.app_option["device"].pack(side="top")
 
 
         self.app_option["vision"] = tkinter.OptionMenu(self.app_frames["east"], self.app_string["vision"], *self.app_choice["vision"])
-        self.app_option["vision"].config(width=93, background="lightgray")
+        self.app_option["vision"].config(width=125, background="lightgray")
         self.app_option["vision"].pack(side="top")
 
         self.app_option["frame"] = tkinter.OptionMenu(self.app_frames["east"], self.app_string["frame"], *self.app_choice["frame"])
-        self.app_option["frame"].config(width=93, background="lightgray")
+        self.app_option["frame"].config(width=125, background="lightgray")
         self.app_option["frame"].pack(side="top")
 
         # Create the canvases to hold the video streams
@@ -97,6 +98,9 @@ class Application(tkinter.Tk):
             # Loop through the frames in a vision
             for frame_key, frame in vision:
 
+                if frame_key != "curr":
+                    pass
+                    
                 # Get the properties and turn the image into RGBA
                 ratio, size = vision.getProperties()
                 rgb_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGBA)
@@ -122,7 +126,7 @@ class Application(tkinter.Tk):
         img_frame = cv2.cvtColor(self.fvs[self.app_string["device"].get()][self.app_string["vision"].get()][self.app_string["frame"].get()], cv2.COLOR_BGR2RGBA)
         control = PIL.Image.fromarray(cv2.resize(img_frame, (600, 600)))
         self.pil_frames["control"] = PIL.ImageTk.PhotoImage(image=control)
-        self.app_canvas["control"].create_image(0, 90, image=self.pil_frames["control"], anchor=tkinter.NW)
+        self.app_canvas["control"].create_image(100, 90, image=self.pil_frames["control"], anchor=tkinter.NW)
 
         # Continue to update
         self.after(15, self.update)
