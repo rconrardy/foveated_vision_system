@@ -1,35 +1,27 @@
 import math
 import cv2
 
-# def cropSquare(frame):
-#     old_size = frame.shape
-#     print(old_size)
-#     crop_begin_x = 0
-#     crop_end_x = old_size[0]
-#     crop_begin_y = 0
-#     crop_end_y = old_size[1]
-#     if crop_end_x > crop_end_y:
-#         crop_end_x = crop_end_y
-#     if crop_end_y > crop_end_x:
-#         crop_end_y = crop_end_x
-#     return frame[crop_begin_x:crop_end_x, crop_begin_y:crop_end_y]
-
 def cropSquare(frame):
-    height, width, channels = frame.shape
+    """Crop a square from the input frame."""
 
-    crop_begin_x = 0
-    crop_end_x = width
-    crop_begin_y = 0
-    crop_end_y = height
+    # Get the original frame's height, width, and channels
+    width, height, channels = frame.shape
 
-    if crop_end_x > crop_end_y:
-        crop_begin_x = (crop_end_x - crop_end_y) // 2
-        crop_end_x = crop_begin_x + height
-    elif crop_end_y > crop_end_x:
-        crop_begin_y = (crop_end_y - crop_end_x) // 2
-        crop_end_y = crop_begin_y + width
+    # Variables to hold the begin and end coordinates
+    crop_x = [0, width]
+    crop_y = [0, height]
 
-    return frame[crop_begin_y:crop_end_y, crop_begin_x:crop_end_x]
+    # Check to see if image is not square and give new coordinates
+    if width > height:
+        crop_x[0] = (width - height) // 2
+        crop_x[1] = crop_x[0] + height
+    elif width < height:
+        crop_y[0] = (height - width) // 2
+        crop_y[1] = crop_y[0] + width
+
+    # Return part of the original image to make a square
+    return frame[crop_x[0]:crop_x[1], crop_y[0]:crop_y[1]]
+
 
 def cropRatio(frame, ratio, pixels, focal_point):
     old_size = frame.shape
@@ -56,6 +48,14 @@ def cropRatio(frame, ratio, pixels, focal_point):
         crop_end_y = old_size[1]
         crop_begin_y = old_size[1] - crop_length_y
     return frame[crop_begin_y:crop_end_y, crop_begin_x:crop_end_x]
+
+# TODO
+# def cropRatio(frame, ratio, pixels, focalpoint):
+#     width, height, channels = frame.shape
+#
+#     crop_x = [(width - math.floor(width*ratio)) // 2, width - (width - math.floor(width*ratio)) // 2]
+#     crop_y = [(height - math.floor(height*ratio)) // 2, height - (height - math.floor(height*ratio)) // 2]
+
 
 def resizeImgCV2(frame, pixels):
      return cv2.resize(frame, (pixels, pixels))

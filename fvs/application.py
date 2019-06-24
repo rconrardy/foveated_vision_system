@@ -3,146 +3,169 @@ import tkinter
 import cv2
 
 class Application(tkinter.Tk):
-    def __init__(self, fvs, *args, **kwargs):
-        """Initialize the Application given FoveatedVisionSystem."""
+    def __init__(self, system, *args, **kwargs):
+        """Initialize the Application given a system."""
 
-        # Initialize the application as a tkinter object with width and height
+        # Initialize the application as a tkinter.Tk object
         tkinter.Tk.__init__(self, *args, **kwargs)
+        self.title("Foveated Vision System")
         self.configure(bg="lightgray", width=1200, height=800)
         self.resizable(width=False, height=False)
 
-        # FoveatedVisionSystem to display in application
-        self.fvs = fvs
+        # Store the system to display in application
+        self._system = system
 
-        # Store all the information for the GUI
-        self.app_frames = {}
-        self.app_option = {}
-        self.app_choice = {}
-        self.app_string = {}
-        self.app_tracer = {}
-        self.app_canvas = {}
-        self.pil_frames = {}
+        # Store all the information for the application as dictionaries
+        self._appFrames = {}
+        self._appOption = {}
+        self._appChoice = {}
+        self._appString = {}
+        self._appTracer = {}
+        self._appCanvas = {}
+        self._pilFrames = {}
 
+        # set up drop down menu for choosing a device
+        self._appString["device"] = tkinter.StringVar(self)
+        self._appChoice["device"] = [choice[0] for choice in self._system]
+        self._appString["device"].set(self._appChoice["device"][0])
 
-        self.app_string["device"] = tkinter.StringVar(self)
-        self.app_choice["device"] = [choice[0] for choice in self.fvs]
-        self.app_string["device"].set(self.app_choice["device"][0])
+        # set up drop down menu for choosing a vision
+        self._appString["vision"] = tkinter.StringVar(self)
+        self._appChoice["vision"] = [choice[0] for choice in self._system[self._appString["device"].get()]]
+        self._appString["vision"].set(self._appChoice["vision"][0])
 
-        self.app_string["vision"] = tkinter.StringVar(self)
-        self.app_choice["vision"] = [choice[0] for choice in self.fvs[self.app_string["device"].get()]]
-        self.app_string["vision"].set(self.app_choice["vision"][0])
-
-        self.app_string["frame"] = tkinter.StringVar(self)
-        self.app_choice["frame"] = [choice[0] for choice in self.fvs[self.app_string["device"].get()][self.app_string["vision"].get()]]
-        self.app_string["frame"].set(self.app_choice["frame"][0])
-
-        # Create the master frame for the application
-        self.title("Foveated Vision System")
+        # set up drop down menu for choosing a frame
+        self._appString["frame"] = tkinter.StringVar(self)
+        self._appChoice["frame"] = [choice[0] for choice in self._system[self._appString["device"].get()][self._appString["vision"].get()]]
+        self._appString["frame"].set(self._appChoice["frame"][0])
 
         # Split the master frame into two left (west) and right (east) segments
-        self.app_frames["west"] = tkinter.Frame(self, width=400, height=800, bg="lightgray")
-        self.app_frames["east"] = tkinter.Frame(self, borderwidth=2, relief="solid", width=600, height=800, bg="lightgray")
-        self.app_frames["west"].pack(side="left", fill="both")
-        self.app_frames["east"].pack(side="right", fill="both", expand=True)
+        self._appFrames["west"] = tkinter.Frame(self, width=400, height=800, bg="lightgray")
+        self._appFrames["east"] = tkinter.Frame(self, borderwidth=2, relief="solid", width=600, height=800, bg="lightgray")
+        self._appFrames["west"].pack(side="left", fill="both")
+        self._appFrames["east"].pack(side="right", fill="both", expand=True)
 
-        self.app_frames["northwest"] = tkinter.Frame(self.app_frames["west"], borderwidth=2, relief="solid", width=400, height=400, bg="lightgray")
-        self.app_frames["southwest"] = tkinter.Frame(self.app_frames["west"], borderwidth=2, relief="solid", width=400, height=400, bg="lightgray")
-        self.app_frames["northwest"].pack(side="top", fill="both")
-        self.app_frames["southwest"].pack(side="bottom", fill="both", expand=True)
+        # Split the west frame into two top (northwest) and bottom (southwest) segments
+        self._appFrames["northwest"] = tkinter.Frame(self._appFrames["west"], borderwidth=2, relief="solid", width=400, height=400, bg="lightgray")
+        self._appFrames["southwest"] = tkinter.Frame(self._appFrames["west"], borderwidth=2, relief="solid", width=400, height=400, bg="lightgray")
+        self._appFrames["northwest"].pack(side="top", fill="both")
+        self._appFrames["southwest"].pack(side="bottom", fill="both", expand=True)
 
         # Set up drop down menu to choose device
-        self.app_option["device"] = tkinter.OptionMenu(self.app_frames["east"], self.app_string["device"], *self.app_choice["device"])
-        self.app_option["device"].config(width=125, background="lightgray")
-        self.app_option["device"].pack(side="top")
+        self._appOption["device"] = tkinter.OptionMenu(self._appFrames["east"], self._appString["device"], *self._appChoice["device"])
+        self._appOption["device"].config(width=125, background="lightgray")
+        self._appOption["device"].pack(side="top")
 
+        # Set up drop down menu to choose vision
+        self._appOption["vision"] = tkinter.OptionMenu(self._appFrames["east"], self._appString["vision"], *self._appChoice["vision"])
+        self._appOption["vision"].config(width=125, background="lightgray")
+        self._appOption["vision"].pack(side="top")
 
-        self.app_option["vision"] = tkinter.OptionMenu(self.app_frames["east"], self.app_string["vision"], *self.app_choice["vision"])
-        self.app_option["vision"].config(width=125, background="lightgray")
-        self.app_option["vision"].pack(side="top")
-
-        self.app_option["frame"] = tkinter.OptionMenu(self.app_frames["east"], self.app_string["frame"], *self.app_choice["frame"])
-        self.app_option["frame"].config(width=125, background="lightgray")
-        self.app_option["frame"].pack(side="top")
+        # Set up drop down menu to choose frame
+        self._appOption["frame"] = tkinter.OptionMenu(self._appFrames["east"], self._appString["frame"], *self._appChoice["frame"])
+        self._appOption["frame"].config(width=125, background="lightgray")
+        self._appOption["frame"].pack(side="top")
 
         # Create the canvases to hold the video streams
-        self.app_canvas["layered"] = tkinter.Canvas(self.app_frames["northwest"], width=400, height=400, bg="lightgray")
-        self.app_canvas["stacked"] = tkinter.Canvas(self.app_frames["southwest"], width=200, height=400, scrollregion=(0,0,200,800), bg="lightgray")
-        self.app_canvas["control"] = tkinter.Canvas(self.app_frames["east"], width=600, height=800, bg="lightgray")
+        self._appCanvas["layered"] = tkinter.Canvas(self._appFrames["northwest"], width=400, height=400, bg="lightgray")
+        self._appCanvas["stacked"] = tkinter.Canvas(self._appFrames["southwest"], width=200, height=400, scrollregion=(0,0,200,800), bg="lightgray")
+        self._appCanvas["control"] = tkinter.Canvas(self._appFrames["east"], width=600, height=800, bg="lightgray")
 
         # Set up scroll bar to scroll through frames
-        self.scrollbar = tkinter.Scrollbar(self.app_frames["southwest"], bg="lightgray", command=self.app_canvas["stacked"].yview)
+        self.scrollbar = tkinter.Scrollbar(self._appFrames["southwest"], bg="lightgray", command=self._appCanvas["stacked"].yview)
         self.scrollbar.pack(side="right", fill="y")
 
-        self.app_canvas["stacked"].config(yscrollcommand=self.scrollbar.set)
-        self.app_canvas["stacked"].pack(side="left", fill="both", expand=True)
-        self.app_canvas["layered"].pack(side="left", fill="both", expand=True)
-        self.app_canvas["control"].pack(fill="both", expand=True)
+        # Display the images inside their respective frames
+        self._appCanvas["stacked"].config(yscrollcommand=self.scrollbar.set)
+        self._appCanvas["stacked"].pack(side="left", fill="both", expand=True)
+        self._appCanvas["layered"].pack(side="left", fill="both", expand=True)
+        self._appCanvas["control"].pack(fill="both", expand=True)
 
-        self.app_tracer["device"] = self.app_string["device"].trace('w', self.update_device)
-        self.app_tracer["vision"] = self.app_string["vision"].trace('w', self.update_vision)
+        # Create tracers to track changes in device or vision choice
+        self._appTracer["device"] = self._appString["device"].trace('w', self.updateDevice)
+        self._appTracer["vision"] = self._appString["vision"].trace('w', self.updateVision)
+
+        # Tell the device to update itself
+        self.update()
 
     def update(self):
-        self.fvs.update()
+        """Update the images that are displayed from the video stream."""
 
-        # Create the blank images
+        # Update the vision frames in the system
+        self._system.update()
+
+        # Create blank PIL images to hold the video streams
         layered = PIL.Image.new('RGBA', (400, 400))
         stacked = PIL.Image.new('RGBA', (200, 800))
         control = PIL.Image.new('RGBA', (600, 800))
 
-        # Get the stack and layered images from the frames
-        i = 0
+        # Get each vision key and vision for the selected device
+        visionList = [(visionKey, vision) for visionKey, vision in self._system[self._appString["device"].get()]]
 
-        # Loop through the visions in a device
-        for vision_key, vision in self.fvs[self.app_string["device"].get()]:
+        # Loop through each vision in the vision list
+        for i, (visionKey, vision) in enumerate(visionList):
 
-            # Loop through the frames in a vision
-            for frame_key, frame in vision:
+            # Grab the frames from the vision when it is "curr"
+            frameList = [frame for frameKey, frame in vision if frameKey=="curr"]
 
-                if frame_key != "curr":
-                    pass
-                    
+            # Loop through each frame in the frame list
+            for frame in frameList:
+
                 # Get the properties and turn the image into RGBA
-                ratio, size = vision.getProperties()
-                rgb_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGBA)
+                ratio, size = vision.properties()
+                rgbFrame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGBA)
 
                 # Paste the images together in layered
-                img_frame = PIL.Image.fromarray(cv2.resize(rgb_frame, (int(400 * ratio), int(400 * ratio))))
-                layered.paste(img_frame, (int(200 * (1 - ratio)), int(200 * (1 - ratio))))
+                imgFrame = PIL.Image.fromarray(cv2.resize(rgbFrame, (int(400 * ratio), int(400 * ratio))))
+                layered.paste(imgFrame, (int(200 * (1 - ratio)), int(200 * (1 - ratio))))
 
                 # Paste the images together in stacked
-                img_frame = PIL.Image.fromarray(cv2.resize(rgb_frame, (200, 200)))
-                stacked.paste(img_frame, (0, 200 * i))
-            i += 1
+                imgFrame = PIL.Image.fromarray(cv2.resize(rgbFrame, (200, 200)))
+                stacked.paste(imgFrame, (0, 200 * i))
 
         # Add the stacked image to the canvas
-        self.pil_frames["stacked"] = PIL.ImageTk.PhotoImage(image=stacked)
-        self.app_canvas["stacked"].create_image(100, 0, image=self.pil_frames["stacked"], anchor=tkinter.NW)
+        self._pilFrames["stacked"] = PIL.ImageTk.PhotoImage(image=stacked)
+        self._appCanvas["stacked"].create_image(100, 0, image=self._pilFrames["stacked"], anchor=tkinter.NW)
 
         # Add the layered image to the canvas
-        self.pil_frames["layered"] = PIL.ImageTk.PhotoImage(image=layered)
-        self.app_canvas["layered"].create_image(0, 0, image=self.pil_frames["layered"], anchor=tkinter.NW)
+        self._pilFrames["layered"] = PIL.ImageTk.PhotoImage(image=layered)
+        self._appCanvas["layered"].create_image(0, 0, image=self._pilFrames["layered"], anchor=tkinter.NW)
 
         # Add the control image to the canvas
-        img_frame = cv2.cvtColor(self.fvs[self.app_string["device"].get()][self.app_string["vision"].get()][self.app_string["frame"].get()], cv2.COLOR_BGR2RGBA)
-        control = PIL.Image.fromarray(cv2.resize(img_frame, (600, 600)))
-        self.pil_frames["control"] = PIL.ImageTk.PhotoImage(image=control)
-        self.app_canvas["control"].create_image(100, 90, image=self.pil_frames["control"], anchor=tkinter.NW)
+        imgFrame = cv2.cvtColor(self._system[self._appString["device"].get()][self._appString["vision"].get()][self._appString["frame"].get()], cv2.COLOR_BGR2RGBA)
+        control = PIL.Image.fromarray(cv2.resize(imgFrame, (600, 600)))
+        self._pilFrames["control"] = PIL.ImageTk.PhotoImage(image=control)
+        self._appCanvas["control"].create_image(100, 90, image=self._pilFrames["control"], anchor=tkinter.NW)
 
-        # Continue to update
+        # Continue to update with a delay of 15
         self.after(15, self.update)
 
-    def update_device(self, *args):
-        self.app_choice["vision"] = [choice[0] for choice in self.fvs[self.app_string["device"].get()]]
-        self.app_string["vision"].set(self.app_choice["vision"][0])
-        menu = self.app_option["vision"]["menu"]
-        menu.delete(0, "end")
-        for string in self.app_choice["vision"]:
-            menu.add_command(label=string, command=lambda value=string: self.app_string["vision"].set(value))
+    def updateDevice(self, *args):
+        """Update the vision choices when a new device is selected."""
 
-    def update_vision(self, *args):
-        self.app_choice["frame"] = [choice[0] for choice in self.fvs[self.app_string["device"].get()][self.app_string["vision"].get()]]
-        self.app_string["frame"].set(self.app_choice["frame"][0])
-        menu = self.app_option["frame"]["menu"]
+        # Update the list of vision choices and the default vision choice
+        self._appChoice["vision"] = [choice[0] for choice in self._system[self._appString["device"].get()]]
+        self._appString["vision"].set(self._appChoice["vision"][0])
+
+        # Delete the old choices fromt the option menu
+        menu = self._appOption["vision"]["menu"]
         menu.delete(0, "end")
-        for string in self.app_choice["frame"]:
-            menu.add_command(label=string, command=lambda value=string: self.app_string["frame"].set(value))
+
+        # Add the new list of choices to the option menu
+        for string in self._appChoice["vision"]:
+            menu.add_command(label=string, command=lambda value=string: self._appString["vision"].set(value))
+
+    def updateVision(self, *args):
+        """Update the frame choices whena new vision is selected."""
+
+        # Update the list of frame choices and the default frame choice
+        self._appChoice["frame"] = [choice[0] for choice in self._system[self._appString["device"].get()][self._appString["vision"].get()]]
+        self._appString["frame"].set(self._appChoice["frame"][0])
+
+        # Delete the old choices fromt the option menu
+        menu = self._appOption["frame"]["menu"]
+        menu.delete(0, "end")
+
+        # Add the new list of choices to the option menu
+        for string in self._appChoice["frame"]:
+            menu.add_command(label=string, command=lambda value=string: self._appString["frame"].set(value))
