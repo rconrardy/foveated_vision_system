@@ -67,3 +67,9 @@ class Device(cv2.VideoCapture):
 
         # Returns the focal point
         return self._focalpoint
+
+    def original(self):
+        """Return the original curr and prev frmaes."""
+
+        # Return the _frames
+        return self._frames

@@ -99,6 +99,9 @@ class Application(tkinter.Tk):
         stacked = PIL.Image.new('RGBA', (200, 800))
         control = PIL.Image.new('RGBA', (600, 800))
 
+        focalpoint = self._system[self._appString["device"].get()].focalpoint()
+        # print(focalpoint)
+
         # Get each vision key and vision for the selected device
         visionList = [(visionKey, vision) for visionKey, vision in self._system[self._appString["device"].get()]]
 
@@ -106,7 +109,7 @@ class Application(tkinter.Tk):
         for i, (visionKey, vision) in enumerate(visionList):
 
             # Grab the frames from the vision when it is "curr"
-            frameList = [frame for frameKey, frame in vision if frameKey=="curr"]
+            frameList = [frame for frameKey, frame in vision if frameKey==self._appString["frame"].get()]
 
             # Loop through each frame in the frame list
             for frame in frameList:
@@ -115,9 +118,21 @@ class Application(tkinter.Tk):
                 ratio, size = vision.properties()
                 rgbFrame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGBA)
 
+                # print(rgbFrame.shape)
+                width, height, channels = rgbFrame.shape
+
                 # Paste the images together in layered
+
                 imgFrame = PIL.Image.fromarray(cv2.resize(rgbFrame, (int(400 * ratio), int(400 * ratio))))
                 layered.paste(imgFrame, (int(200 * (1 - ratio)), int(200 * (1 - ratio))))
+
+                # layered.paste(imgFrame, (int(200 * (1 - ratio) + focalpoint[0] * (200 / width)), int(200 * (1 - ratio) - focalpoint[1] * (200 / height))))
+                # layered.paste(imgFrame, (int(200 * (1 - ratio) + focalpoint[0] * (200 // width)), int(200 * (1 - ratio) - focalpoint[1] * (200 // height))))
+                # layered.paste(imgFrame, (int(200 * (1 - ratio) + focalpoint[0] * (ratio ** -1)), int(200 * (1 - ratio) - focalpoint[1] * (ratio ** -1))))
+                # layered.paste(imgFrame, (int(200 * (1 - ratio) + focalpoint[0] * (200/width) / ratio), int(200 * (1 - ratio) - focalpoint[1] * (200/height) / ratio)))
+                # layered.paste(imgFrame, (int(200 * (1 - ratio) + focalpoint[0] * (200 / width)), int(200 * (1 - ratio) - focalpoint[1] * (200 / height))))
+                # layered.paste(imgFrame, (int(200 * (1 - ratio) + focalpoint[0] * (ratio ** -1) / 200), int(200 * (1 - ratio) - focalpoint[1] * (ratio ** -1) / 200)))
+                # layered.paste(imgFrame, (int(200 * (1 - ratio) + focalpoint[0] * (400//width * (1- ratio))), int(200 * (1 - ratio) - focalpoint[1] * (400//height * (1 - ratio)))))
 
                 # Paste the images together in stacked
                 imgFrame = PIL.Image.fromarray(cv2.resize(rgbFrame, (200, 200)))

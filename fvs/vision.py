@@ -1,4 +1,5 @@
 import fvs.utils as utils
+import time
 import cv2
 
 class Vision:
@@ -48,11 +49,11 @@ class Vision:
 
         # Crop and resize the "prev" frame from the original frame
         self._frames["prev"] = utils.cropRatio(frames["prev"], self._ratio, self._size, focalpoint)
-        self._frames["prev"] = cv2.resize(self._frames["prev"], (self._size, self._size))
+        self._frames["prev"] = cv2.resize(self._frames["prev"], (self._size, self._size), interpolation=cv2.INTER_AREA)
 
         # Crop and resize the "curr" frame from the original frame
         self._frames["curr"] = utils.cropRatio(frames["curr"], self._ratio, self._size, focalpoint)
-        self._frames["curr"] = cv2.resize(self._frames["curr"], (self._size, self._size))
+        self._frames["curr"] = cv2.resize(self._frames["curr"], (self._size, self._size), interpolation=cv2.INTER_CUBIC)
 
     def properties(self):
         """Get the properties for the Vision."""

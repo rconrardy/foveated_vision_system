@@ -1,3 +1,4 @@
+import numpy
 import math
 import cv2
 
@@ -23,42 +24,42 @@ def cropSquare(frame):
     return frame[crop_x[0]:crop_x[1], crop_y[0]:crop_y[1]]
 
 
-def cropRatio(frame, ratio, pixels, focal_point):
-    old_size = frame.shape
-    crop_begin_x = (old_size[0] - math.floor(old_size[0]*ratio)) // 2
-    crop_end_x = old_size[0] - crop_begin_x
-    crop_length_x = crop_end_x - crop_begin_x
-    crop_begin_y = (old_size[1] - math.floor(old_size[1]*ratio)) // 2
-    crop_end_y = old_size[1] - crop_begin_y
-    crop_length_y = crop_end_y - crop_begin_y
-    crop_begin_x = crop_begin_x + focal_point[0] * (old_size[0] // pixels)
-    crop_end_x = crop_end_x + focal_point[0] * (old_size[0] // pixels)
-    crop_begin_y = crop_begin_y - focal_point[1] * (old_size[1] // pixels)
-    crop_end_y = crop_end_y - focal_point[1] * (old_size[1] // pixels)
-    if crop_begin_x <= 0:
-        crop_begin_x = 0
-        crop_end_x = crop_length_x
-    if crop_begin_y <= 0:
-        crop_begin_y = 0
-        crop_end_y = crop_length_y
-    if crop_end_x >= old_size[0]:
-        crop_end_x = old_size[0]
-        crop_begin_x = old_size[0] - crop_length_x
-    if crop_end_y >= old_size[1]:
-        crop_end_y = old_size[1]
-        crop_begin_y = old_size[1] - crop_length_y
-    return frame[crop_begin_y:crop_end_y, crop_begin_x:crop_end_x]
+def cropRatio(frame, ratio, pixels, focalpoint):
+    """Crop a new square from a frame given the desired ratio, pixels, and focalpoint."""
 
-# TODO
-# def cropRatio(frame, ratio, pixels, focalpoint):
-#     width, height, channels = frame.shape
-#
-#     crop_x = [(width - math.floor(width*ratio)) // 2, width - (width - math.floor(width*ratio)) // 2]
-#     crop_y = [(height - math.floor(height*ratio)) // 2, height - (height - math.floor(height*ratio)) // 2]
+    # Get the original frame's height, width, and channels
+    width, height, channels = frame.shape
 
+    # Variables to hold the begin and end coordinates
+    crop_x = [(width - math.floor(width*ratio)) // 2, width - (width - math.floor(width*ratio)) // 2]
+    crop_y = [(height - math.floor(height*ratio)) // 2, height - (height - math.floor(height*ratio)) // 2]
 
-def resizeImgCV2(frame, pixels):
-     return cv2.resize(frame, (pixels, pixels))
+    # Get the size of the frame
+    size_x = crop_x[1] - crop_x[0]
+    size_y = crop_y[1] - crop_y[0]
 
-def stopSignal():
-    return True if cv2.waitKey(1) & 0xFF == ord('q') else False
+    # Get the size of the frame given the focalpoint offset
+    # print(width, pixels)
+    crop_x[0] += focalpoint[0] * (width // pixels)
+    crop_x[1] += focalpoint[0] * (width // pixels)
+    crop_y[0] -= focalpoint[1] * (height // pixels)
+    crop_y[1] -= focalpoint[1] * (height // pixels)
+
+    # Make sure that the new frame is inside the range on the x axis
+    if crop_x[0] <= 0:
+        crop_x[0] = 0
+        crop_x[1] = size_x
+    elif crop_x[1] > width:
+        crop_x[0] = width - size_x
+        crop_x[1] = width
+
+    # Make sure that the new frame is inside the range on the y axis
+    if crop_y[0] < 0:
+        crop_y[0] = 0
+        crop_y[1] = size_y
+    elif crop_y[1] > height:
+        crop_y[0] = height - size_y
+        crop_y[1] = size_y
+
+    # Return part of the original image
+    return frame[crop_y[0]:crop_y[1], crop_x[0]:crop_x[1]]
